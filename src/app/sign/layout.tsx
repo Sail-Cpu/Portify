@@ -3,7 +3,8 @@ import GoogleLogo from "@/src/assets/google.png"
 import GithubLogo from "@/src/assets/github.png"
 import React from "react";
 
-export default function SignLayout({children}: Readonly<{ children: React.ReactNode; }>) {
+export default async function SignLayout({children}: Readonly<{ children: React.ReactNode; }>) {
+
     return(
         <div className="w-full min-h-screen flex items-center">
             <div className="w-full flex flex-col items-center">
