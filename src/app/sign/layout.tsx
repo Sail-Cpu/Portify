@@ -1,4 +1,4 @@
-import {ProviderBtn} from "@/src/features/components/sign";
+import ProviderBtn from "@/src/features/components/sign/ProviderBtn";
 import GoogleLogo from "@/src/assets/google.png"
 import GithubLogo from "@/src/assets/github.png"
 import React from "react";

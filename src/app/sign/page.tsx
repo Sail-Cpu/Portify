@@ -1,11 +1,6 @@
-import {SignBtn, SignInput} from "@/src/features/components/sign";
+import Form from "@/src/features/components/sign/Form";
 
 export default async function page(){
-    return(
-        <form className="w-full">
-            <SignInput name="Email" type="email" />
-            <SignInput name="Password" type="password" />
-            <SignBtn name="Sign in" />
-        </form>
-    )
+
+    return <Form />
 }

@@ -4,7 +4,7 @@ import {createClient} from "@/src/utils/supabase/server";
 import {SignInWithOAuthCredentials} from "@supabase/auth-js";
 import {redirect} from "next/navigation";
 
-export async function ProviderBtn({ logo, title }: { logo: StaticImageData, title: string }) {
+export default async function ProviderBtn({ logo, title }: { logo: StaticImageData, title: string }) {
 
     const provider = title.toLowerCase();
 
@@ -23,6 +23,8 @@ export async function ProviderBtn({ logo, title }: { logo: StaticImageData, titl
             throw new Error("An error occured");
         }
 
+        console.log(data);
+
         redirect(data.url)
     }
 
@@ -34,16 +36,4 @@ export async function ProviderBtn({ logo, title }: { logo: StaticImageData, titl
             </button>
         </form>
     );
-}
-export async function SignInput({name, type} : {name: string, type: string}) {
-    return <div>
-        <label className="font-medium">{name}</label>
-        <input type={type} name={name} className="w-full p-1 px-4 text-lg border border-grey rounded-lg my-2 outline-blue" />
-    </div>
-}
-
-export async function SignBtn({name} : {name: string}) {
-    return <button className="w-full p-2 bg-blue text-white rounded-lg mt-4 mb-10">
-        {name}
-    </button>
 }
