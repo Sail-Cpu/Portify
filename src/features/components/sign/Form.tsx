@@ -1,20 +1,18 @@
 "use client";
 import { SignBtn, SignInput } from "@/src/features/components/sign/inputs";
-import {FormEvent, useEffect, useState} from "react";
+import {FormEvent, useState} from "react";
 import { createClient } from "@/src/utils/supabase/client";
 import {useRouter} from "next/navigation";
+import {Session, User} from "@supabase/auth-js";
 
-export default function Form() {
-    const [email, setEmail] = useState("");
-    const [exist, setExist] = useState("sign");
+type AuthData = {
+    user: User | null;
+    session: Session | null;
+} | null;
 
-    const router = useRouter()
+export function SignUpForm() {
 
-    useEffect(() => {
-        if(exist != "sign"){
-            setExist("sign")
-        }
-    }, [email])
+    const [data, setData] = useState<AuthData>();
 
     const handleEmailSubmit = async (e: FormEvent) => {
         e.preventDefault();
@@ -22,33 +20,55 @@ export default function Form() {
         const form = e.currentTarget as HTMLFormElement;
         const formData = new FormData(form);
         const email = formData.get("Email") as string | null;
+        const password = formData.get("Password") as string | null;
+        const confirmPassword = formData.get("Confirm password") as string | null;
 
-        if (!email) {
+        if (!email || !password || !confirmPassword) {
             console.log("Email is required"); // Prochaine étape : toaster
             return;
         }
 
+        if(password != confirmPassword){
+            console.log("passwords did not match");
+            return;
+        }
+
         const supabase = createClient();
-        const { data, error } = await supabase.auth.
-        signUp({ email, password: "OpbsoletePassword" });
+
+        const { data, error } = await supabase.auth
+            .signUp({
+                email,
+                password: password,
+                options: {
+                emailRedirectTo: 'http://localhost:3000/auth/callback'
+            }
+        });
+
+        setData(data);
 
         if(error) {
             console.log(error);
             return;
         }
-
-        if (data?.user?.identities?.length === 0) {
-            setExist("signin");
-            return;
-        }
-
-        setExist("signup");
     };
 
-    const handleVerificationSubmit = (e: FormEvent) => {
-        e.preventDefault();
-        console.log("verif")
-    };
+    if(data?.user != null) {
+        return <div className="w-full p-4">
+            <h1>check your email and click on the link</h1>
+        </div>
+    }
+
+    return <form onSubmit={handleEmailSubmit}>
+        <SignInput holder="Email" name="Email" type="email" />
+        <SignInput holder="Password" name="Password" type="password" />
+        <SignInput holder="Confirm password" name="Confirm password" type="password" />
+        <SignBtn name="Continue" />
+    </form>
+}
+
+export function SignInForm() {
+
+    const router = useRouter()
 
     const handlePasswordSubmit = async (e: FormEvent) => {
         e.preventDefault();
@@ -63,8 +83,9 @@ export default function Form() {
             return;
         }
 
-        const supabase = createClient();
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const supabase = createClient()
+
+        const { error } = await supabase.auth.signInWithPassword({
             email: email,
             password: password,
         })
@@ -77,25 +98,9 @@ export default function Form() {
         router.push("/");
     };
 
-    const handleSubmit = (e: FormEvent) => {
-        if(exist == "sign"){
-            return handleEmailSubmit(e);
-        }else if (exist == "signin"){
-            return handlePasswordSubmit(e);
-        }else{
-            return handleVerificationSubmit(e);
-        }
-    }
-
-    return  <form onSubmit={handleSubmit} className="w-full">
-        <SignInput onchange={(e) => setEmail(e.currentTarget.value)} holder="Enter your email address..." name="Email" type="email" />
-        {
-            exist == "signin" &&
-                <SignInput holder="Enter your password..." name="Password" type="password" />}
-        {
-            exist == "signup" &&
-                <SignInput holder="Enter the code you received..." name="Verification code" type="text" />
-        }
-        <SignBtn name="Continue" />
+    return <form onSubmit={handlePasswordSubmit}>
+        <SignInput holder="Email" name="Email" type="email" />
+        <SignInput holder="Password" name="Password" type="password" />
+        <SignBtn name="Sign in" />
     </form>
 }

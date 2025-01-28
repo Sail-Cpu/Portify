@@ -1,4 +1,4 @@
-import React, {FormEvent} from "react";
+import React from "react";
 
 export function SignInput(
     {name, type, holder, onchange} : {name: string, type: string, holder?: string, onchange?: (e: React.FormEvent<HTMLInputElement>) => void}) {
@@ -9,7 +9,7 @@ export function SignInput(
             name={name}
             onChange={onchange}
             placeholder={holder}
-            className="w-full p-1 px-4 text-lg border border-grey rounded-lg my-2 outline-blue" />
+            className="w-full p-1 px-4 text-[16px] border border-grey rounded-lg my-2 outline-blue" />
     </div>
 }
 
