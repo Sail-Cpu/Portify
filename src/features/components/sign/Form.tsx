@@ -1,46 +1,37 @@
+"use client";
+
 import {FileInput, SignBtn, SignInput} from "@/src/features/components/sign/inputs";
-import { createClient } from "@/src/utils/supabase/server";
-import {redirect} from "next/navigation";
+import { FormEvent } from "react";
+import { signUpAction, signInAction } from "./action/submit.action";
+import {toast} from "sonner";
+import { useRouter } from "next/navigation";
+import {createClient} from "@/src/utils/supabase/client";
 
-export async function SignUpForm() {
+export function SignUpForm() {
 
-    const handleEmailSubmit = async (formData: FormData) => {
-        "use server"
+    const router = useRouter();
 
-        const email = formData.get("Email") as string | null;
-        const password = formData.get("Password") as string | null;
-        const confirmPassword = formData.get("Confirm password") as string | null;
+    const handleSubmit = async (e: FormEvent) => {
+        e.preventDefault();
 
-        if (!email || !password || !confirmPassword) {
-            console.log("Email is required"); // Prochaine étape : toaster
-            return;
+        const formData = new FormData(e.currentTarget as HTMLFormElement);
+
+        const body = {
+            email: formData.get("Email") as string,
+            password: formData.get("Password") as string,
+            confirmPassword: formData.get("Confirm password") as string
         }
 
-        if(password != confirmPassword){
-            console.log("passwords did not match");
-            return;
+        const { success, message } = await signUpAction(body);
+
+        if(!success) {
+            toast.error(message);
         }
 
-        const supabase = await createClient();
-
-        const { error } = await supabase.auth
-            .signUp({
-                email,
-                password: password,
-                options: {
-                emailRedirectTo: 'http://localhost:3000/auth/callback'
-            }
-        });
-
-        if(error) {
-            console.log(error);
-            return;
-        }
-
-        redirect("/sign/verify")
+        router.push("/sign/verify")
     };
 
-    return <form action={handleEmailSubmit}>
+    return <form onSubmit={handleSubmit}>
         <SignInput holder="Email" name="Email" type="email" />
         <SignInput holder="Password" name="Password" type="password" />
         <SignInput holder="Confirm password" name="Confirm password" type="password" />
@@ -48,81 +39,81 @@ export async function SignUpForm() {
     </form>
 }
 
-export async function SignInForm() {
+export function SignInForm() {
 
-    const handlePasswordSubmit = async (formData: FormData) => {
-        "use server";
+    const router = useRouter();
 
-        const email = formData.get("Email") as string | null;
-        const password = formData.get("Password") as string | null;
+    const handleSubmit = async (e: FormEvent) => {
+        e.preventDefault();
 
-        if (!email || ! password) {
-            console.log("Email is required"); // Prochaine étape : toaster
-            return;
+        const formData = new FormData(e.currentTarget as HTMLFormElement);
+
+        const body = {
+            email: formData.get("Email") as string,
+            password: formData.get("Password") as string
         }
 
-        const supabase = await createClient()
+        const { success, message } = await signInAction(body)
 
-        const { error } = await supabase.auth.signInWithPassword({
-            email: email,
-            password: password,
-        })
-
-        if(error) {
-            console.log(error);
-            return;
+        if(!success) {
+            toast.error(message);
         }
 
-        redirect("/")
+        router.push("/")
     };
 
-    return <form action={handlePasswordSubmit}>
+    return <form onSubmit={handleSubmit}>
         <SignInput holder="Email" name="Email" type="email" />
         <SignInput holder="Password" name="Password" type="password" />
         <SignBtn name="Sign in" />
     </form>
 }
-export async function SignMetadataForm() {
+export function SignMetadataForm() {
 
-    async function handleSubmit(formData: FormData) {
-        "use server";
+    const router = useRouter();
 
-        const rawFormData = {
-            file: formData.get('Picture') as File | null,
-            username: formData.get('Username') as string | null
-        }
+    const handleSubmit = async (e: FormEvent) => {
+        e.preventDefault();
 
-        if(!rawFormData.file || !rawFormData.username){
-            console.log("error");
+        const formData = new FormData(e.currentTarget as HTMLFormElement);
+
+        const supabase = createClient();
+
+        const file =  formData.get("Picture") as File;
+        const username = formData.get("Username") as string;
+
+        if(!username || !file){
+            toast.error("all fields must be completed")
             return;
         }
-
-        const supabase = await createClient()
 
         const {data: userData} = await supabase.auth.getUser();
 
         const {error: fileError} = await supabase.storage.from('images')
-            .upload(`${userData.user?.id}/avatar.png`, rawFormData.file, {
+            .upload(`${userData.user?.id}/avatar.png`, file, {
                 upsert: true,
             })
+
         if(fileError) {
-            console.log(fileError);
+            toast.error("An error as occured with the image");
+            return;
         }
 
         const { error } = await supabase.auth.updateUser({
             data: {
-                name: rawFormData.username
+                name: username
             }
         })
 
-        if(error){
-            console.log(error);
+        if(error) {
+            toast.error("An error as occured with the name");
+            return;
         }
 
-        redirect("/");
-    }
+        router.push("/")
+    };
 
-    return <form action={handleSubmit}>
+    return <form onSubmit={handleSubmit}>
         <FileInput name="Picture"/>
         <div className="mt-4 w-44">
             <SignInput name="Username" type="text" />
