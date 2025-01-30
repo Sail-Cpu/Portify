@@ -10,7 +10,8 @@ export default {
         background: "#f9fafb",
         white: "#fff",
         grey: "#d1d5dc",
-        blue: "#4f39f6"
+        blue: "#4f39f6",
+        blue_light: "rgba(79,57,246,0.30)"
       },
     },
   },

@@ -1,24 +1,12 @@
-"use client";
-import { SignBtn, SignInput } from "@/src/features/components/sign/inputs";
-import {FormEvent, useState} from "react";
-import { createClient } from "@/src/utils/supabase/client";
-import {useRouter} from "next/navigation";
-import {Session, User} from "@supabase/auth-js";
+import {FileInput, SignBtn, SignInput} from "@/src/features/components/sign/inputs";
+import { createClient } from "@/src/utils/supabase/server";
+import {redirect} from "next/navigation";
 
-type AuthData = {
-    user: User | null;
-    session: Session | null;
-} | null;
+export async function SignUpForm() {
 
-export function SignUpForm() {
+    const handleEmailSubmit = async (formData: FormData) => {
+        "use server"
 
-    const [data, setData] = useState<AuthData>();
-
-    const handleEmailSubmit = async (e: FormEvent) => {
-        e.preventDefault();
-
-        const form = e.currentTarget as HTMLFormElement;
-        const formData = new FormData(form);
         const email = formData.get("Email") as string | null;
         const password = formData.get("Password") as string | null;
         const confirmPassword = formData.get("Confirm password") as string | null;
@@ -33,9 +21,9 @@ export function SignUpForm() {
             return;
         }
 
-        const supabase = createClient();
+        const supabase = await createClient();
 
-        const { data, error } = await supabase.auth
+        const { error } = await supabase.auth
             .signUp({
                 email,
                 password: password,
@@ -44,21 +32,15 @@ export function SignUpForm() {
             }
         });
 
-        setData(data);
-
         if(error) {
             console.log(error);
             return;
         }
+
+        redirect("/")
     };
 
-    if(data?.user != null) {
-        return <div className="w-full p-4">
-            <h1>check your email and click on the link</h1>
-        </div>
-    }
-
-    return <form onSubmit={handleEmailSubmit}>
+    return <form action={handleEmailSubmit}>
         <SignInput holder="Email" name="Email" type="email" />
         <SignInput holder="Password" name="Password" type="password" />
         <SignInput holder="Confirm password" name="Confirm password" type="password" />
@@ -66,15 +48,11 @@ export function SignUpForm() {
     </form>
 }
 
-export function SignInForm() {
+export async function SignInForm() {
 
-    const router = useRouter()
+    const handlePasswordSubmit = async (formData: FormData) => {
+        "use server";
 
-    const handlePasswordSubmit = async (e: FormEvent) => {
-        e.preventDefault();
-
-        const form = e.currentTarget as HTMLFormElement;
-        const formData = new FormData(form);
         const email = formData.get("Email") as string | null;
         const password = formData.get("Password") as string | null;
 
@@ -83,7 +61,7 @@ export function SignInForm() {
             return;
         }
 
-        const supabase = createClient()
+        const supabase = await createClient()
 
         const { error } = await supabase.auth.signInWithPassword({
             email: email,
@@ -95,12 +73,60 @@ export function SignInForm() {
             return;
         }
 
-        router.push("/");
+        redirect("/")
     };
 
-    return <form onSubmit={handlePasswordSubmit}>
+    return <form action={handlePasswordSubmit}>
         <SignInput holder="Email" name="Email" type="email" />
         <SignInput holder="Password" name="Password" type="password" />
         <SignBtn name="Sign in" />
+    </form>
+}
+export async function SignMetadataForm() {
+
+    async function handleSubmit(formData: FormData) {
+        "use server";
+
+        const rawFormData = {
+            file: formData.get('Picture') as File | null,
+            username: formData.get('Username') as string | null
+        }
+
+        if(!rawFormData.file || !rawFormData.username){
+            console.log("error");
+            return;
+        }
+
+        const supabase = await createClient()
+
+        const {data: userData} = await supabase.auth.getUser();
+
+        const {error: fileError} = await supabase.storage.from('images')
+            .upload(`${userData.user?.id}/avatar.png`, rawFormData.file, {
+                upsert: true,
+            })
+        if(fileError) {
+            console.log(fileError);
+        }
+
+        const { error } = await supabase.auth.updateUser({
+            data: {
+                name: rawFormData.username
+            }
+        })
+
+        if(error){
+            console.log(error);
+        }
+
+        redirect("/");
+    }
+
+    return <form action={handleSubmit}>
+        <FileInput name="Picture"/>
+        <div className="mt-4 w-44">
+            <SignInput name="Username" type="text" />
+            <SignBtn name="Submit" />
+        </div>
     </form>
 }
