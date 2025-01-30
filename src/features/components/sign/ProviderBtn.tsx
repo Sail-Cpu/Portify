@@ -4,6 +4,8 @@ import {createClient} from "@/src/utils/supabase/server";
 import {SignInWithOAuthCredentials} from "@supabase/auth-js";
 import {redirect} from "next/navigation";
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+
 export default async function ProviderBtn({ logo, title }: { logo: StaticImageData, title: string }) {
 
     const provider = title.toLowerCase();
@@ -15,7 +17,7 @@ export default async function ProviderBtn({ logo, title }: { logo: StaticImageDa
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: provider,
             options: {
-                redirectTo: "http://localhost:3000/auth/callback"
+                redirectTo: `${BASE_URL}/auth/callback`
             }
         } as SignInWithOAuthCredentials)
 

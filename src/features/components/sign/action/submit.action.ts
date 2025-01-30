@@ -1,6 +1,8 @@
 "use server"
 import {createClient} from "@/src/utils/supabase/server";
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+
 export async function signUpAction({email, password, confirmPassword} : {email: string, password: string, confirmPassword: string}) {
 
     if (!email || !password || !confirmPassword) {
@@ -18,7 +20,7 @@ export async function signUpAction({email, password, confirmPassword} : {email: 
             email,
             password: password,
             options: {
-            emailRedirectTo: 'http://localhost:3000/auth/callback'
+            emailRedirectTo: `${BASE_URL}/auth/callback`
         }
     });
 
