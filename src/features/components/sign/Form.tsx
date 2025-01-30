@@ -37,7 +37,7 @@ export async function SignUpForm() {
             return;
         }
 
-        redirect("/")
+        redirect("/sign/verify")
     };
 
     return <form action={handleEmailSubmit}>

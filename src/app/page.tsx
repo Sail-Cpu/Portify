@@ -10,7 +10,7 @@ export default async function Home() {
     <div className="">
       {
         user ?
-            <h1>welcome, {user?.email}</h1>
+            <h1>welcome, {user?.user_metadata?.name}</h1>
             :
             <h1>Not logged in</h1>
       }
