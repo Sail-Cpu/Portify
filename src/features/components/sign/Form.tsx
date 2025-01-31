@@ -26,6 +26,7 @@ export function SignUpForm() {
 
         if(!success) {
             toast.error(message);
+            return;
         }
 
         router.push("/sign/verify")
@@ -57,6 +58,7 @@ export function SignInForm() {
 
         if(!success) {
             toast.error(message);
+            return;
         }
 
         router.push("/")
